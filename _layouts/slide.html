@@ -4,30 +4,160 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ site.title }}</title>
-  <link rel="stylesheet" href="static/style.css">
+  <style>
+    :root {
+      --btm-green: #213c1e;
+      --btm-gold: #f1cf81;
+      --btm-red: #c30808;
+      --text-white: #ffffff;
+    }
+
+    .stage.theme-dark {
+      --bg-color: var(--btm-green);
+      --border-color: var(--btm-gold);
+      --heading-color: var(--btm-gold);
+      --text-color: var(--text-white);
+    }
+
+    .stage.theme-light {
+      --bg-color: var(--btm-gold);
+      --border-color: var(--btm-green);
+      --heading-color: var(--btm-green);
+      --text-color: var(--btm-green);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: #000000;
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .stage {
+      width: 100vw;
+      height: calc(100vw * 9 / 16);
+      max-height: 100vh;
+      max-width: calc(100vh * 16 / 9);
+      aspect-ratio: 16 / 9;
+      position: relative;
+      background-color: var(--bg-color, #213c1e);
+      border: 4px solid var(--border-color, #f1cf81);
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.8s ease-in-out;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: flex-start;
+      padding: 4vw 4vw 8vw 4vw;
+      text-align: left;
+    }
+
+    /* Force Active Slide Visibility */
+    .slide.active {
+      opacity: 1 !important;
+      visibility: visible !important;
+      z-index: 10;
+    }
+
+    .slide h1 {
+      color: var(--heading-color, #f1cf81);
+      font-size: 3.8vw;
+      margin-bottom: 2vw;
+      line-height: 1.1;
+      max-width: 75%;
+    }
+
+    .slide-content {
+      font-size: 2vw;
+      color: var(--text-color, #ffffff);
+      max-width: 90%;
+    }
+
+    .slide-badge {
+      position: absolute;
+      top: 2vw;
+      right: 2vw;
+      background-color: var(--btm-red);
+      color: var(--text-white);
+      padding: 0.5vw 1.5vw;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 1.2vw;
+      text-transform: uppercase;
+      z-index: 15;
+    }
+
+    .logo {
+      position: absolute;
+      bottom: 2vw;
+      left: 2vw;
+      height: 4.5vw;
+      max-height: 80px;
+      width: auto;
+      z-index: 20;
+    }
+
+    .progress-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 8px;
+      background-color: var(--btm-red);
+      width: 0%;
+      z-index: 30;
+      transition: width linear;
+    }
+  </style>
 </head>
 <body>
 
-  <main class="stage" id="stage">
+  {% assign all_slides = site.slides %}
+  {% if all_slides and all_slides.size > 0 %}
+    {% assign sorted_slides = all_slides | sort: "order" %}
+    {% assign first_theme = sorted_slides.first.theme | default: site.theme | default: 'dark' %}
+  {% else %}
+    {% assign first_theme = site.theme | default: 'dark' %}
+  {% endif %}
+
+  <main class="stage theme-{{ first_theme }}" id="stage">
     <img src="{{ '/logo.svg' | relative_url }}" alt="Logo" class="logo">
 
-    {% assign all_slides = site.slides | default: site.empty_array %}
-    {% assign sorted_slides = all_slides | sort: "order" %}
-
-    {% for slide in sorted_slides %}
-      {% assign slide_theme = slide.theme | default: site.theme | default: 'dark' %}
-      <article 
-        class="slide {% if forloop.first %}active{% endif %}" 
-        data-theme="{{ slide_theme }}">
-        {% if slide.badge %}
-          <span class="slide-badge">{{ slide.badge }}</span>
-        {% endif %}
-        <h1>{{ slide.title }}</h1>
+    {% if sorted_slides and sorted_slides.size > 0 %}
+      {% for slide in sorted_slides %}
+        {% assign slide_theme = slide.theme | default: site.theme | default: 'dark' %}
+        <article 
+          class="slide {% if forloop.first %}active{% endif %}" 
+          data-theme="{{ slide_theme }}">
+          {% if slide.badge %}
+            <span class="slide-badge">{{ slide.badge }}</span>
+          {% endif %}
+          <h1>{{ slide.title }}</h1>
+          <div class="slide-content">
+            {{ slide.content }}
+          </div>
+        </article>
+      {% endfor %}
+    {% else %}
+      <!-- Fallback slide if site.slides is empty or failing -->
+      <article class="slide active" data-theme="dark">
+        <h1>No Slides Found</h1>
         <div class="slide-content">
-          {{ slide.content }}
+          <p>Please ensure you have Markdown files inside the <code>_slides/</code> directory with valid YAML Front Matter.</p>
         </div>
       </article>
-    {% endfor %}
+    {% endif %}
 
     <div class="progress-bar" id="progress"></div>
   </main>
@@ -43,11 +173,12 @@
 
     function applyTheme(index) {
       if (!slides[index]) return;
-      const theme = slides[index].dataset.theme;
+      const theme = slides[index].dataset.theme || 'dark';
       stage.className = `stage theme-${theme}`;
     }
 
     function startProgressBar() {
+      if (!progressBar) return;
       progressBar.style.transition = 'none';
       progressBar.style.width = '0%';
       setTimeout(() => {
@@ -69,13 +200,14 @@
     if (slides.length > 0) {
       applyTheme(0);
       startProgressBar();
-      setInterval(showNextSlide, slideDuration);
+      if (slides.length > 1) {
+        setInterval(showNextSlide, slideDuration);
+      }
     }
 
-    const refreshIntervalMs = refreshHours * 60 * 60 * 1000;
     setTimeout(() => {
       window.location.reload(true);
-    }, refreshIntervalMs);
+    }, refreshHours * 60 * 60 * 1000);
   </script>
 </body>
 </html>
