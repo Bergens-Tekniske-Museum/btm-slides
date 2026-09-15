@@ -4,21 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ site.title }}</title>
-  <link rel="stylesheet" href="static/style.css"
+  <link rel="stylesheet" href="static/style.css">
 </head>
 <body>
 
-  {% assign current_theme = site.theme | default: 'dark' %}
-  <main class="stage theme-{{ current_theme }}">
-    <!-- Bottom Left Logo -->
-    <img src="{{ '/static/logo.png' | relative_url }}" alt="Logo" class="logo">
+  <main class="stage" id="stage">
+    <img src="{{ '/logo.svg' | relative_url }}" alt="Logo" class="logo">
 
-    <!-- Safe collection handling -->
     {% assign all_slides = site.slides | default: site.empty_array %}
     {% assign sorted_slides = all_slides | sort: "order" %}
 
     {% for slide in sorted_slides %}
-      <article class="slide {% if forloop.first %}active{% endif %}">
+      {% assign slide_theme = slide.theme | default: site.theme | default: 'dark' %}
+      <article 
+        class="slide {% if forloop.first %}active{% endif %}" 
+        data-theme="{{ slide_theme }}">
         {% if slide.badge %}
           <span class="slide-badge">{{ slide.badge }}</span>
         {% endif %}
@@ -33,12 +33,19 @@
   </main>
 
   <script>
+    const stage = document.getElementById('stage');
     const slides = document.querySelectorAll('.slide');
     const progressBar = document.getElementById('progress');
     const slideDuration = {{ site.slide_duration | default: 5000 }};
     const refreshHours = {{ site.refresh_hours | default: 8 }};
     
     let currentIndex = 0;
+
+    function applyTheme(index) {
+      if (!slides[index]) return;
+      const theme = slides[index].dataset.theme;
+      stage.className = `stage theme-${theme}`;
+    }
 
     function startProgressBar() {
       progressBar.style.transition = 'none';
@@ -54,15 +61,17 @@
       slides[currentIndex].classList.remove('active');
       currentIndex = (currentIndex + 1) % slides.length;
       slides[currentIndex].classList.add('active');
+      
+      applyTheme(currentIndex);
       startProgressBar();
     }
 
     if (slides.length > 0) {
+      applyTheme(0);
       startProgressBar();
       setInterval(showNextSlide, slideDuration);
     }
 
-    // Auto-refresh every N hours to load new slides
     const refreshIntervalMs = refreshHours * 60 * 60 * 1000;
     setTimeout(() => {
       window.location.reload(true);
