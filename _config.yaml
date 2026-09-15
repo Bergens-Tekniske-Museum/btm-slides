@@ -1,7 +1,6 @@
 title: "BTM Digital Signage"
 slide_duration: 6000  # Time per slide in milliseconds
 refresh_hours: 8     # Reload page interval to discover new slides
-theme: "light"
 
 collections:
   slides:
