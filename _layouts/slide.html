@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ site.title }}</title>
+  <style>
+    :root {
+      --btm-green: #213c1e;
+      --btm-gold: #f1cf81;
+      --btm-red: #c30808;
+      --text-white: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #000000;
+      color: var(--text-white);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Enforce 16:9 Aspect Ratio Container */
+    .stage {
+      width: 100vw;
+      height: calc(100vw * 9 / 16);
+      max-height: 100vh;
+      max-width: calc(100vh * 16 / 9);
+      aspect-ratio: 16 / 9;
+      position: relative;
+      background-color: var(--btm-green);
+      border: 4px solid var(--btm-gold);
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.8s ease-in-out;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 5vw;
+      text-align: center;
+    }
+
+    .slide.active {
+      opacity: 1;
+      z-index: 1;
+    }
+
+    .slide h1 {
+      color: var(--btm-gold);
+      font-size: 4vw;
+      margin-bottom: 2vw;
+      line-height: 1.1;
+    }
+
+    .slide-content {
+      font-size: 2vw;
+      color: var(--text-white);
+      max-width: 85%;
+    }
+
+    .slide-badge {
+      position: absolute;
+      top: 2vw;
+      right: 2vw;
+      background-color: var(--btm-red);
+      color: var(--text-white);
+      padding: 0.5vw 1.5vw;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 1.2vw;
+      text-transform: uppercase;
+    }
+
+    /* BTM Red Progress Bar */
+    .progress-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 8px;
+      background-color: var(--btm-red);
+      width: 0%;
+      z-index: 10;
+      transition: width linear;
+    }
+  </style>
+</head>
+<body>
+
+  <main class="stage">
+    {% assign sorted_slides = site.slides | sort: "order" %}
+    {% for slide in sorted_slides %}
+      <article class="slide {% if forloop.first %}active{% endif %}">
+        {% if slide.badge %}
+          <span class="slide-badge">{{ slide.badge }}</span>
+        {% endif %}
+        <h1>{{ slide.title }}</h1>
+        <div class="slide-content">
+          {{ slide.content }}
+        </div>
+      </article>
+    {% endfor %}
+    <div class="progress-bar" id="progress"></div>
+  </main>
+
+  <script>
+    const slides = document.querySelectorAll('.slide');
+    const progressBar = document.getElementById('progress');
+    const slideDuration = {{ site.slide_duration | default: 5000 }};
+    const refreshHours = {{ site.refresh_hours | default: 8 }};
+    
+    let currentIndex = 0;
+
+    function startProgressBar() {
+      progressBar.style.transition = 'none';
+      progressBar.style.width = '0%';
+      setTimeout(() => {
+        progressBar.style.transition = `width ${slideDuration}ms linear`;
+        progressBar.style.width = '100%';
+      }, 50);
+    }
+
+    function showNextSlide() {
+      if (slides.length <= 1) return;
+      slides[currentIndex].classList.remove('active');
+      currentIndex = (currentIndex + 1) % slides.length;
+      slides[currentIndex].classList.add('active');
+      startProgressBar();
+    }
+
+    if (slides.length > 0) {
+      startProgressBar();
+      setInterval(showNextSlide, slideDuration);
+    }
+
+    // Auto-refresh entire display every N hours to fetch new site updates
+    const refreshIntervalMs = refreshHours * 60 * 60 * 1000;
+    setTimeout(() => {
+      window.location.reload(true);
+    }, refreshIntervalMs);
+  </script>
+</body>
+</html>
