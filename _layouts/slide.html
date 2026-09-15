@@ -102,7 +102,11 @@
 <body>
 
   <main class="stage">
-    {% assign sorted_slides = site.slides | sort: "order" %}
+    {% if site.slides %}
+      {% assign sorted_slides = site.slides | sort: "order" %}
+    {% else %}
+      {% assign sorted_slides = "" | split: "" %}
+    {% endif %}
     {% for slide in sorted_slides %}
       <article class="slide {% if forloop.first %}active{% endif %}">
         {% if slide.badge %}
