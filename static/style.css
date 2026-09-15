@@ -1,0 +1,120 @@
+:root {
+  --btm-green: #213c1e;
+  --btm-gold: #f1cf81;
+  --btm-red: #c30808;
+  --text-white: #ffffff;
+}
+
+/* Dark Mode Theme Variables */
+.theme-dark {
+  --bg-color: var(--btm-green);
+  --border-color: var(--btm-gold);
+  --heading-color: var(--btm-gold);
+  --text-color: var(--text-white);
+}
+
+/* Light Mode Theme Variables (Yellow Background) */
+.theme-light {
+  --bg-color: var(--btm-gold);
+  --border-color: var(--btm-green);
+  --heading-color: var(--btm-green);
+  --text-color: var(--btm-green);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: #000000;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* 16:9 Aspect Ratio Container */
+.stage {
+  width: 100vw;
+  height: calc(100vw * 9 / 16);
+  max-height: 100vh;
+  max-width: calc(100vh * 16 / 9);
+  aspect-ratio: 16 / 9;
+  position: relative;
+  background-color: var(--bg-color);
+  border: 4px solid var(--border-color);
+  overflow: hidden;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.8s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 5vw;
+  text-align: center;
+}
+
+.slide.active {
+  opacity: 1;
+  z-index: 1;
+}
+
+.slide h1 {
+  color: var(--heading-color);
+  font-size: 4vw;
+  margin-bottom: 2vw;
+  line-height: 1.1;
+}
+
+.slide-content {
+  font-size: 2vw;
+  color: var(--text-color);
+  max-width: 85%;
+}
+
+.slide-badge {
+  position: absolute;
+  top: 2vw;
+  right: 2vw;
+  background-color: var(--btm-red);
+  color: var(--text-white);
+  padding: 0.5vw 1.5vw;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 1.2vw;
+  text-transform: uppercase;
+}
+
+/* Bottom-Left Logo Positioning */
+.logo {
+  position: absolute;
+  bottom: 2vw;
+  left: 2vw;
+  height: 4.5vw;
+  max-height: 80px;
+  width: auto;
+  z-index: 20;
+  object-fit: contain;
+}
+
+/* Progress Bar */
+.progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 8px;
+  background-color: var(--btm-red);
+  width: 0%;
+  z-index: 10;
+  transition: width linear;
+}

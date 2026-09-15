@@ -4,109 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ site.title }}</title>
-  <style>
-    :root {
-      --btm-green: #213c1e;
-      --btm-gold: #f1cf81;
-      --btm-red: #c30808;
-      --text-white: #ffffff;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      background-color: #000000;
-      color: var(--text-white);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    /* Enforce 16:9 Aspect Ratio Container */
-    .stage {
-      width: 100vw;
-      height: calc(100vw * 9 / 16);
-      max-height: 100vh;
-      max-width: calc(100vh * 16 / 9);
-      aspect-ratio: 16 / 9;
-      position: relative;
-      background-color: var(--btm-green);
-      border: 4px solid var(--btm-gold);
-      overflow: hidden;
-    }
-
-    .slide {
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      transition: opacity 0.8s ease-in-out;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 5vw;
-      text-align: center;
-    }
-
-    .slide.active {
-      opacity: 1;
-      z-index: 1;
-    }
-
-    .slide h1 {
-      color: var(--btm-gold);
-      font-size: 4vw;
-      margin-bottom: 2vw;
-      line-height: 1.1;
-    }
-
-    .slide-content {
-      font-size: 2vw;
-      color: var(--text-white);
-      max-width: 85%;
-    }
-
-    .slide-badge {
-      position: absolute;
-      top: 2vw;
-      right: 2vw;
-      background-color: var(--btm-red);
-      color: var(--text-white);
-      padding: 0.5vw 1.5vw;
-      border-radius: 4px;
-      font-weight: bold;
-      font-size: 1.2vw;
-      text-transform: uppercase;
-    }
-
-    /* BTM Red Progress Bar */
-    .progress-bar {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      height: 8px;
-      background-color: var(--btm-red);
-      width: 0%;
-      z-index: 10;
-      transition: width linear;
-    }
-  </style>
+  <link rel="stylesheet" href="static/style.css"
 </head>
 <body>
 
-  <main class="stage">
-    {% if site.slides %}
-      {% assign sorted_slides = site.slides | sort: "order" %}
-    {% else %}
-      {% assign sorted_slides = "" | split: "" %}
-    {% endif %}
+  {% assign current_theme = site.theme | default: 'dark' %}
+  <main class="stage theme-{{ current_theme }}">
+    <!-- Bottom Left Logo -->
+    <img src="{{ '/static/logo.png' | relative_url }}" alt="Logo" class="logo">
+
+    <!-- Safe collection handling -->
+    {% assign all_slides = site.slides | default: site.empty_array %}
+    {% assign sorted_slides = all_slides | sort: "order" %}
+
     {% for slide in sorted_slides %}
       <article class="slide {% if forloop.first %}active{% endif %}">
         {% if slide.badge %}
@@ -118,6 +28,7 @@
         </div>
       </article>
     {% endfor %}
+
     <div class="progress-bar" id="progress"></div>
   </main>
 
@@ -151,7 +62,7 @@
       setInterval(showNextSlide, slideDuration);
     }
 
-    // Auto-refresh entire display every N hours to fetch new site updates
+    // Auto-refresh every N hours to load new slides
     const refreshIntervalMs = refreshHours * 60 * 60 * 1000;
     setTimeout(() => {
       window.location.reload(true);
